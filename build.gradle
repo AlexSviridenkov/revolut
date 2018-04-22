@@ -12,7 +12,7 @@ repositories {
 mainClassName = 'moneytransfer.Start'
 
 dependencies {
-    compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-http', version: '2.26'
+    compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-http', version: '2.25'
     compile group: 'com.sun.jersey', name: 'jersey-grizzly', version: '1.18.6'
     compile group: 'com.h2database', name: 'h2', version: '1.4.197'
 
