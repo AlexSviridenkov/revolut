@@ -15,6 +15,7 @@ public class Start {
     public static void main(String[] args) throws IOException {
         URI baseUri = UriBuilder.fromUri("http://localhost/").port(90).build();
         ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.packages("moneytransfer");
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, resourceConfig);
         System.out.println("Press enter to stop the server...");
         System.in.read();
