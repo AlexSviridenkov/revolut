@@ -16,6 +16,7 @@ public class Start {
         URI baseUri = UriBuilder.fromUri("http://localhost/").port(90).build();
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.packages("moneytransfer");
+        resourceConfig.register(new ModulesBinder());
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, resourceConfig);
         System.out.println("Press enter to stop the server...");
         System.in.read();
