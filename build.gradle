@@ -18,8 +18,7 @@ dependencies {
     compile group: 'com.sun.jersey', name: 'jersey-grizzly', version: '1.18.6'
     compile group: 'com.h2database', name: 'h2', version: '1.4.197'
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
-
-
+    compile group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.25'
 
     compile "org.jdbi:jdbi3-core:3.1.1"
     compile "org.jdbi:jdbi3-sqlobject:3.1.1"
