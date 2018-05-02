@@ -2,6 +2,8 @@ package moneytransfer.rest;
 
 import moneytransfer.models.Account;
 import moneytransfer.services.AccountService;
+import moneytransfer.services.NotEnoughMoneyException;
+import org.glassfish.jersey.server.JSONP;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -45,7 +47,7 @@ public class AccountRestService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/transfer")
-    public void transfer(TransferMoneyRequest request) {
+    public void transfer(TransferMoneyRequest request) throws NotEnoughMoneyException {
         accountService.transfer(request.from, request.to, request.amount);
     }
 
