@@ -14,10 +14,6 @@ import java.net.URI;
 
 public class Start {
     public static void main(String[] args) throws IOException {
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
-        Logger.getLogger("").setLevel(Level.FINEST);
-
         URI baseUri = UriBuilder.fromUri("http://localhost/").port(90).build();
         ApplicationConfig config = new ApplicationConfig();
 
