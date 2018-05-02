@@ -11,5 +11,5 @@ CREATE TABLE operations
   transferDate DATETIME DEFAULT now(),
   accountIdFrom INT,
   accountIdTo INT,
-  balance NUMERIC(18,2) DEFAULT 0
+  amount NUMERIC(18,2) DEFAULT 0
 );

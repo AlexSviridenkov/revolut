@@ -64,8 +64,8 @@ public class AccountService {
             fromAccount.balance = fromAccount.balance.subtract(amount);
             accountRepository.update(fromAccount);
 
-            toAccount.balance = fromAccount.balance.add(amount);
-            accountRepository.update(fromAccount);
+            toAccount.balance = toAccount.balance.add(amount);
+            accountRepository.update(toAccount);
 
             Operation operation = new Operation();
             operation.accountIdFrom = from;

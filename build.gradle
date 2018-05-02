@@ -28,6 +28,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'com.h2database', name: 'h2', version: '1.4.197'
 
+    testCompile group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-jdk-http', version: '2.22.1'
 }
 
 run {

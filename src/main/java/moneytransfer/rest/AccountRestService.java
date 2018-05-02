@@ -52,6 +52,9 @@ public class AccountRestService {
     }
 
     private AccountInfoResponse convert(Account account){
+        if (account == null)
+            return null;
+
         AccountInfoResponse info = new AccountInfoResponse();
         info.id = account.id;
         info.balance = account.balance;
