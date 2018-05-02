@@ -1,6 +1,7 @@
 package moneytransfer;
 
 import moneytransfer.repositories.DataBaseFactory;
+import moneytransfer.services.AccountService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.jdbi.v3.core.Jdbi;
 
@@ -10,7 +11,7 @@ public class ModulesBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
-//        bind(MyService.class).to(MyService.class);
+        bind(AccountService.class).to(AccountService.class);
         bindFactory(DataBaseFactory.class).to(Jdbi.class).in(Singleton.class);
     }
 }
