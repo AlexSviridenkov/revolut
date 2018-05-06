@@ -3,35 +3,39 @@ package moneytransfer.services;
 import moneytransfer.models.Account;
 import moneytransfer.models.Operation;
 import moneytransfer.repositories.AccountRepository;
-import moneytransfer.repositories.DataBase;
 import moneytransfer.repositories.OperationsRepository;
-import org.jdbi.v3.core.Handle;
-import org.jdbi.v3.core.Jdbi;
 
 import javax.inject.Inject;
+import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class AccountService {
 
     @Inject
-    public Jdbi jdbi;
+    public DataSource dataSource;
 
-    public Account create() {
-        Account account = new Account();
-        account.balance = BigDecimal.ZERO;
-        account.creationDate = now();
-        account.id = accountRepository().insert(account);
-        return account;
+    public Account create() throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            Account account = new Account();
+            account.balance = BigDecimal.ZERO;
+            account.creationDate = now();
+            account.id = accountRepository(connection).insert(account);
+            return account;
+        }
     }
 
-    public Account getAccount(int id) {
-        return accountRepository().get(id);
+    public Account getAccount(int id) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            return accountRepository(connection).get(id);
+        }
     }
 
-    public Account putMoney(int id, BigDecimal amount) {
-        return jdbi.inTransaction((conn) -> {
-            AccountRepository accountRepository = accountRepository(conn);
+    public Account putMoney(int id, BigDecimal amount) throws SQLException {
+        return inTx(connection -> {
+            AccountRepository accountRepository = accountRepository(connection);
             Account account = accountRepository.get(id);
             account.balance = account.balance.add(amount);
             accountRepository.update(account);
@@ -40,19 +44,21 @@ public class AccountService {
             operation.accountIdTo = id;
             operation.amount = amount;
             operation.transferDate = now();
-            operationsRepository(conn).insert(operation);
+            operationsRepository(connection).insert(operation);
 
             return account;
         });
     }
 
-    public void delete(int id) {
-        accountRepository().delete(id);
+    public void delete(int id) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            accountRepository(connection).delete(id);
+        }
     }
 
-    public void transfer(int from, int to, BigDecimal amount) throws NotEnoughMoneyException {
-        jdbi.useTransaction((conn) -> {
-            AccountRepository accountRepository = accountRepository(conn);
+    public void transfer(int from, int to, BigDecimal amount) throws SQLException {
+        inTx(connection -> {
+            AccountRepository accountRepository = accountRepository(connection);
             Account fromAccount = accountRepository.get(from);
             Account toAccount = accountRepository.get(to);
 
@@ -72,20 +78,34 @@ public class AccountService {
             operation.accountIdTo = to;
             operation.amount = amount;
             operation.transferDate = now();
-            operationsRepository(conn).insert(operation);
+            operationsRepository(connection).insert(operation);
+            return null;
         });
     }
 
-    private AccountRepository accountRepository() {
-        return jdbi.onDemand(AccountRepository.class);
+    public interface InTxFunction<T, R> {
+        R apply(T t) throws SQLException;
     }
 
-    private AccountRepository accountRepository(Handle conn) {
-        return conn.attach(AccountRepository.class);
+    private <T> T inTx(InTxFunction<Connection, T> execute) throws SQLException {
+        Connection connection = dataSource.getConnection();
+        try {
+            connection.setAutoCommit(false);
+            T result = execute.apply(connection);
+            connection.commit();
+            return result;
+        } catch (Exception e) {
+            connection.rollback();
+            throw e;
+        }
     }
 
-    private OperationsRepository operationsRepository(Handle conn) {
-        return conn.attach(OperationsRepository.class);
+    private AccountRepository accountRepository(Connection connection) {
+        return new AccountRepository(connection);
+    }
+
+    private OperationsRepository operationsRepository(Connection connection) {
+        return new OperationsRepository(connection);
     }
 
     private static Date now() {

@@ -1,26 +1,66 @@
 package moneytransfer.repositories;
 
 import moneytransfer.models.Account;
-import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
-import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
-import org.jdbi.v3.sqlobject.customizer.BindFields;
-import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
-import org.jdbi.v3.sqlobject.statement.SqlQuery;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
-public interface AccountRepository {
+import java.sql.*;
 
-    @SqlQuery("select * from accounts where id = ?")
-    @RegisterFieldMapper(Account.class)
-    Account get(int id);
+public class AccountRepository {
 
-    @SqlUpdate("DELETE FROM accounts where id = ?")
-    void delete(int id);
+    private Connection connection;
 
-    @SqlUpdate("update accounts set balance = :balance where id = :id")
-    void update(@BindFields Account account);
+    public AccountRepository(Connection connection) {
+        this.connection = connection;
+    }
 
-    @SqlUpdate("insert into accounts (creationDate, balance) values (:creationDate, :balance)")
-    @GetGeneratedKeys("id")
-    int insert(@BindFields Account account);
+    public Account get(int id) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM accounts WHERE id = ?")) {
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (!resultSet.isBeforeFirst()) {
+                return null;
+            }
+
+            resultSet.next();
+            Account account = new Account();
+            account.id = resultSet.getInt("id");
+            account.balance = resultSet.getBigDecimal("balance");
+            account.creationDate = resultSet.getDate("creationDate");
+
+            return account;
+        } catch (SQLException e) {
+            throw e;
+        }
+    }
+
+    public void delete(int id) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("DELETE FROM accounts WHERE id = ?")) {
+            statement.setInt(1, id);
+            statement.execute();
+        }
+    }
+
+    public void update(Account account) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE accounts SET balance = ? WHERE id = ?")) {
+            statement.setBigDecimal(1, account.balance);
+            statement.setInt(2, account.id);
+            statement.execute();
+        }
+    }
+
+    public int insert(Account account) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO accounts (creationDate, balance) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            statement.setTimestamp(1, new Timestamp(account.creationDate.getTime()));
+            statement.setBigDecimal(2, account.balance);
+            statement.executeUpdate();
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt("id");
+                } else {
+                    throw new SQLException("Failed to create account, no ID obtained.");
+                }
+            }
+        }
+    }
 }

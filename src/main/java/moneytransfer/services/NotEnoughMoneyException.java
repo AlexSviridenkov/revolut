@@ -1,5 +1,5 @@
 package moneytransfer.services;
 
-public class NotEnoughMoneyException extends Exception {
+public class NotEnoughMoneyException extends Error {
 }
 
