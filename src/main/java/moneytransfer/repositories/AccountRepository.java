@@ -29,8 +29,6 @@ public class AccountRepository {
             account.creationDate = resultSet.getDate("creationDate");
 
             return account;
-        } catch (SQLException e) {
-            throw e;
         }
     }
 
