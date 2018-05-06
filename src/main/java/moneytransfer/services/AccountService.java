@@ -64,7 +64,7 @@ public class AccountService {
 
 
             if (fromAccount.balance.compareTo(amount) < 0) {
-                throw new NotEnoughMoneyException();
+                throw new NotEnoughMoneyException("Account " + fromAccount.id + " doesn't have enough money");
             }
 
             fromAccount.balance = fromAccount.balance.subtract(amount);
