@@ -97,6 +97,8 @@ public class AccountService {
         } catch (Exception e) {
             connection.rollback();
             throw e;
+        } finally {
+            connection.close();
         }
     }
 
