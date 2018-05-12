@@ -87,7 +87,8 @@ public class AccountRepository {
             statement.setInt(1, id);
             statement.executeQuery();
             ResultSet resultSet = statement.executeQuery();
-            return resultSet.isBeforeFirst();
+            resultSet.next();
+            return resultSet.getBoolean(1);
         }
     }
 }

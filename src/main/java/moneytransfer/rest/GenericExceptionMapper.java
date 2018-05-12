@@ -1,6 +1,7 @@
 package moneytransfer.rest;
 
 import moneytransfer.services.NotEnoughMoneyException;
+import moneytransfer.services.UnknownAccountException;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -28,6 +29,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     private int getStatus(Throwable ex) {
         if (ex instanceof NotEnoughMoneyException) {
             return 550;
+        } else if (ex instanceof UnknownAccountException) {
+            return 404;
         } else {
             return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
         }

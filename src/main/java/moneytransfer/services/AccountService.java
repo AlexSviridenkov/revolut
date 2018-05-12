@@ -80,7 +80,7 @@ public class AccountService {
 
     private void checkAccount(AccountRepository accountRepository, int id) throws SQLException {
         if (!accountRepository.checkAccount(id)) {
-            throw new UnknownAccountException(String.valueOf(id));
+            throw new UnknownAccountException(id);
         }
     }
 
