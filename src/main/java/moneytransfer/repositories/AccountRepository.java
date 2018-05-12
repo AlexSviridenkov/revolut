@@ -2,6 +2,7 @@ package moneytransfer.repositories;
 
 import moneytransfer.models.Account;
 
+import java.math.BigDecimal;
 import java.sql.*;
 
 public class AccountRepository {
@@ -47,6 +48,25 @@ public class AccountRepository {
         }
     }
 
+    public void increaseBalance(int account, BigDecimal amount) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE accounts SET balance = balance + ?" +
+                "WHERE id = ?")) {
+            statement.setBigDecimal(1, amount);
+            statement.setInt(2, account);
+            statement.execute();
+        }
+    }
+
+    public boolean decreaseBalance(int account, BigDecimal amount) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE accounts SET balance = balance - ?" +
+                "WHERE id = ? AND balance >  ?")) {
+            statement.setBigDecimal(1, amount);
+            statement.setInt(2, account);
+            statement.setBigDecimal(3, amount);
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     public int insert(Account account) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("INSERT INTO accounts (creationDate, balance) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             statement.setTimestamp(1, new Timestamp(account.creationDate.getTime()));
@@ -59,6 +79,15 @@ public class AccountRepository {
                     throw new SQLException("Failed to create account, no ID obtained.");
                 }
             }
+        }
+    }
+
+    public boolean checkAccount(int id) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT EXISTS(SELECT id FROM accounts WHERE id = ?)")) {
+            statement.setInt(1, id);
+            statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.isBeforeFirst();
         }
     }
 }

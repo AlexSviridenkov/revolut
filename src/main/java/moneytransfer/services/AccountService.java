@@ -36,9 +36,9 @@ public class AccountService {
     public Account putMoney(int id, BigDecimal amount) throws SQLException {
         return inTx(connection -> {
             AccountRepository accountRepository = accountRepository(connection);
-            Account account = accountRepository.get(id);
-            account.balance = account.balance.add(amount);
-            accountRepository.update(account);
+            checkAccount(accountRepository, id);
+
+            accountRepository.increaseBalance(id, amount);
 
             Operation operation = new Operation();
             operation.accountIdTo = id;
@@ -46,7 +46,7 @@ public class AccountService {
             operation.transferDate = now();
             operationsRepository(connection).insert(operation);
 
-            return account;
+            return accountRepository.get(id);
         });
     }
 
@@ -59,19 +59,14 @@ public class AccountService {
     public void transfer(int from, int to, BigDecimal amount) throws SQLException {
         inTx(connection -> {
             AccountRepository accountRepository = accountRepository(connection);
-            Account fromAccount = accountRepository.get(from);
-            Account toAccount = accountRepository.get(to);
+            checkAccount(accountRepository, from);
+            checkAccount(accountRepository, to);
 
+            if (!accountRepository.decreaseBalance(from, amount)){
+                throw new NotEnoughMoneyException("Account " + from + " doesn't have enough money");
+            };
 
-            if (fromAccount.balance.compareTo(amount) < 0) {
-                throw new NotEnoughMoneyException("Account " + fromAccount.id + " doesn't have enough money");
-            }
-
-            fromAccount.balance = fromAccount.balance.subtract(amount);
-            accountRepository.update(fromAccount);
-
-            toAccount.balance = toAccount.balance.add(amount);
-            accountRepository.update(toAccount);
+            accountRepository.increaseBalance(to, amount);
 
             Operation operation = new Operation();
             operation.accountIdFrom = from;
@@ -81,6 +76,12 @@ public class AccountService {
             operationsRepository(connection).insert(operation);
             return null;
         });
+    }
+
+    private void checkAccount(AccountRepository accountRepository, int id) throws SQLException {
+        if (!accountRepository.checkAccount(id)) {
+            throw new UnknownAccountException(String.valueOf(id));
+        }
     }
 
     public interface InTxFunction<T, R> {
